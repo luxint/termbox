@@ -342,8 +342,8 @@
 ;;    0xe8 - 0xff: 24 different shades of grey
 ;;
 ;;    Example usage:
-;;        change_cell(x, y, '@', 184, 240);
-;;        change_cell(x, y, '@', 0xb8, 0xf0);
+;;        (put-string x y "@" 184 240)
+;;        (put-string x y "@" 0xb8 0xf0)
 ;;
 ;; 3. OUTPUT_216        => [0..216]
 ;;    This mode supports the 3rd range of the 256 mode only.
