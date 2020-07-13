@@ -8,7 +8,7 @@ The newlisp API consists of a few functions see below , for full descriptions, p
 To use this module you need the termbox dynamic library from https://github.com/nsf/termbox.
 On a mac you can do brew install termbox, on my system it then is at:
  /usr/local/Cellar/termbox/1.1.2/lib/libtermbox.dylib.
-On Linux use apt-get or other package manager. On Windows ..?
+On Linux use apt-get or other package manager. 
 For linux the libtermbox.so file is searched for in /usr/lib/termbox/, /usr/local/lib/termbox/,
 or /usr/pkg/lib/termbox/ , if not there change the directory in termbox.lsp.
 
