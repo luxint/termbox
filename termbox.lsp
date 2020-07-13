@@ -27,12 +27,12 @@
     "/usr/local/share/termbox/libtermbox.dylib" ; 
 ))
 
-(set 'lib (files (or
-		       (find true (map file? files)) 
-		       (throw-error "cannot find termbox library"))))
+;|# (set 'lib (files (or
+;|# 		       (find true (map file? files)) 
+;|# 		       (throw-error "cannot find termbox library"))))
 
 
-;(define lib "/usr/local/Cellar/termbox/1.1.2/lib/libtermbox.dylib")
+(define lib "/usr/local/Cellar/termbox/1.1.2/lib/libtermbox.dylib")
 
 ;; Key constants. See also struct event's key field.
 ;; These are a safe subset of terminfo keys, which exist on all popular
@@ -268,14 +268,23 @@
   (dostring (s str)
     (tb_change_cell (+ x (* $idx x1)) (+ y (* $idx y1)) s fg bg)))
 
-;;Utility function to print a box
+;; @syntax  (tb:box)
+;; @syntax  (tb:box <x> <y>)
+;; @syntax  (tb:box) <x> <xy> <w> <h>)
+;; @syntax  (tb:box) <x> <xy> <w> <h> <fg> <bg>)
+;: @param <x> <y> position of left top of box, defaults to 0,0
+;; @param <w> <h> width and height of box, defaults to width and height of the terminal window 
+;; @param <fg> <bg> foregrounf and background colors, defaults to Green and Black
+;; Draws a rectangle
 (define(box (x 0) (y 0) (w (- (tb:width) 1)) (h (- (tb:height) 1)) (fg tb:GREEN) (bg tb:BLACK))
   (put-string x y (string "┌" (dup "─" (- w 1)))  fg bg)
   (put-string (+ x w) y (string "┐" (dup "│" (- h 1)))  fg bg 2)
   (put-string (+ x 1) (+ y h ) (string (dup "─" (- w 1)) "┘")  fg bg)
   (put-string x (+ y 1) (string (dup "│" (- h 1)) "└")  fg bg 2))
 
-;;Returns a pointer to internal cell back buffer. You can get its dimensions
+;; @syntax (cell-buffer)
+;; @return pointer
+;; Returns a pointer to internal cell back buffer. You can get its dimensions
 ;; using tb_width() and tb_height() functions. The pointer stays valid as long
 ;; as no tb_clear() and tb_present() calls are made. The buffer is
 ;; one-dimensional buffer containing lines of cells starting from the top.
@@ -287,23 +296,25 @@
 (constant 'INPUT_ALT     2) ; 010 
 (constant 'INPUT_MOUSE   4) ; 100 
 
-; Sets the termbox input mode. Termbox has two input modes:
-; 1. Esc input mode.
-;    When ESC sequence is in the buffer and it doesn't match any known
-;    ESC sequence => ESC means KEY_ESC.
-; 2. Alt input mode.
-;    When ESC sequence is in the buffer and it doesn't match any known
-;    sequence => ESC enables MOD_ALT modifier for the next keyboard event.
+;; @syntax (input-mode mode)
+;; @param <mode>  tb:INPUT_CURRENT , tb:INPUT_ESC, tb:INPUT_ALT, tb:INPUT_MOUSE
+;; Sets the termbox input mode. Termbox has two input modes:
+;; 1. Esc input mode.
+;;    When ESC sequence is in the buffer and it doesn't match any known
+;;    ESC sequence => ESC means KEY_ESC.
+;; 2. Alt input mode.
+;;    When ESC sequence is in the buffer and it doesn't match any known
+;;    sequence => ESC enables MOD_ALT modifier for the next keyboard event.
+;;
+;; You can also apply INPUT_MOUSE via bitwise OR operation to either of the
+;; modes (e.g. INPUT_ESC | INPUT_MOUSE). If none of the main two modes
+;; were set, but the mouse mode was, INPUT_ESC mode is used. If for some
+;; reason you've decided to use (INPUT_ESC | INPUT_ALT) combination, it
+;; will behave as if only INPUT_ESC was selected.
+;;
+;; If 'mode' is INPUT_CURRENT, it returns the current input mode.
 ;
-; You can also apply INPUT_MOUSE via bitwise OR operation to either of the
-; modes (e.g. INPUT_ESC | INPUT_MOUSE). If none of the main two modes
-; were set, but the mouse mode was, INPUT_ESC mode is used. If for some
-; reason you've decided to use (INPUT_ESC | INPUT_ALT) combination, it
-; will behave as if only INPUT_ESC was selected.
-;
-; If 'mode' is INPUT_CURRENT, it returns the current input mode.
-;
-; Default termbox input mode is INPUT_ESC.
+;; Default termbox input mode is INPUT_ESC.
 (define (input-mode mode)
   (tb_select_input_mode mode))
 
@@ -313,53 +324,72 @@
 (constant 'OUTPUT_216       3)
 (constant 'OUTPUT_GRAYSCALE 4)
 
-; Sets the termbox output mode. Termbox has three output options:
-; 1. OUTPUT_NORMAL     => [1..8]
-;    This mode provides 8 different colors:
- ;      black, red, green, yellow, blue, magenta, cyan, white
- ;    Shortcut: BLACK, RED, ...
- ;    Attributes: BOLD, UNDERLINE, REVERSE
- ;
- ;    Example usage:
- ;        (put-string x y "@" (| tb:BLACK tb:BOLD) RED);
- ;
- ; 2. OUTPUT_256        => [0..256]
- ;    In this mode you can leverage the 256 terminal mode:
- ;    0x00 - 0x07: the 8 colors as in OUTPUT_NORMAL
- ;    0x08 - 0x0f: * | BOLD
- ;    0x10 - 0xe7: 216 different colors
- ;    0xe8 - 0xff: 24 different shades of grey
- ;
- ;    Example usage:
- ;        change_cell(x, y, '@', 184, 240);
- ;        change_cell(x, y, '@', 0xb8, 0xf0);
- ;
- ; 3. OUTPUT_216        => [0..216]
- ;    This mode supports the 3rd range of the 256 mode only.
- ;    But you don't need to provide an offset.
- ;
- ; 4. OUTPUT_GRAYSCALE  => [0..23]
- ;    This mode supports the 4th range of the 256 mode only.
- ;    But you dont need to provide an offset.
- ;
- ; If 'mode' is OUTPUT_CURRENT, it returns the current output mode.
- ;
- ; Default termbox output mode is OUTPUT_NORMAL.
+;; @syntax (output-mode mode)
+;; @param <mode> 
+;; Sets the termbox output mode. Termbox has three output options:
+;; 1. OUTPUT_NORMAL     => [1..8]
+;;    This mode provides 8 different colors:
+;;      black, red, green, yellow, blue, magenta, cyan, white
+;;    Shortcut: BLACK, RED, ...
+;;    Attributes: BOLD, UNDERLINE, REVERSE
+;;
+;;    Example usage:
+;;        (put-string x y "@" (| tb:BLACK tb:BOLD) RED);
+;;
+;; 2. OUTPUT_256        => [0..256]
+;;    In this mode you can leverage the 256 terminal mode:
+;;    0x00 - 0x07: the 8 colors as in OUTPUT_NORMAL
+;;    0x08 - 0x0f: * | BOLD
+;;    0x10 - 0xe7: 216 different colors
+;;    0xe8 - 0xff: 24 different shades of grey
+;;
+;;    Example usage:
+;;        change_cell(x, y, '@', 184, 240);
+;;        change_cell(x, y, '@', 0xb8, 0xf0);
+;;
+;; 3. OUTPUT_216        => [0..216]
+;;    This mode supports the 3rd range of the 256 mode only.
+;;    But you don't need to provide an offset.
+;;
+;; 4. OUTPUT_GRAYSCALE  => [0..23]
+;;    This mode supports the 4th range of the 256 mode only.
+;;    But you dont need to provide an offset.
+;;
+;; If 'mode' is OUTPUT_CURRENT, it returns the current output mode.
+;;
+;; Default termbox output mode is OUTPUT_NORMAL.
 (define (output-mode mode)
   (tb_select_output_mode mode))
 
-; Wait for an event up to 'timeout' milliseconds and fill the 'event'
- ; structure with it, when the event is available. Returns the type of the
- ; event (one of EVENT_* constants) or -1 if there was an error or 0 in case
- ; there were no event during 'timeout' period.
+;; @syntax (peek-event timeout)
+;; @param <timeout>
+;; @return <list type < list mod key ch w h x y >> 
+;; Wait for an event up to 'timeout' milliseconds and fill the 'event'
+;; structure with it, when the event is available. Returns the type of the
+;; event or -1 if there was an error or 0 in case
+;; there were no event during 'timeout' period.
+;; An event, single interaction from the user. The 'mod' and 'ch' fields are
+;; valid if 'type' is tb:EVENT_KEY. The 'w' and 'h' fields are valid if 'type'
+;; is tb:EVENT_RESIZE. The 'x' and 'y' fields are valid if 'type' is
+;; tb:EVENT_MOUSE. The 'key' field is valid if 'type' is either tb:EVENT_KEY
+;; or tb:EVENT_MOUSE. The fields 'key' and 'ch' are mutually exclusive; only
+;; one of them can be non-zero at a time. 
 (define(peek-event timeout)
 	(set 'ev (pack event))
   (set 'type (tb_peek_event ev timeout))
 	(list type (unpack event ev)))
 
-; Wait for an event forever and fill the 'event' structure with it, when the
-; event is available. Returns the type of the event (one of EVENT_*
-; constants) or -1 if there was an error.
+
+;; @syntax (poll)
+;; @return <list type < list mod key ch w h x y >> 
+;; Wait for an event forever and fill the 'event' structure with it, when the
+;; event is available. Returns the type of the event  or -1 if there was an error.
+;; An event, single interaction from the user. The 'mod' and 'ch' fields are
+;; valid if 'type' is tb:EVENT_KEY. The 'w' and 'h' fields are valid if 'type'
+;; is tb:EVENT_RESIZE. The 'x' and 'y' fields are valid if 'type' is
+;; tb:EVENT_MOUSE. The 'key' field is valid if 'type' is either tb:EVENT_KEY
+;; or tb:EVENT_MOUSE. The fields 'key' and 'ch' are mutually exclusive; only
+;; one of them can be non-zero at a time.
 (define (poll)
 	(set 'ev (pack event))
   (set 'type (tb_poll_event ev))
@@ -378,10 +408,13 @@
   (set 'x 10)
   (while true
     (set 'e (tb:poll))
-    (set 's (char ((e 1) tb:event->ch)))
-    (tb:put-string (inc x) 10 s tb:BLACK tb:WHITE)
-    (tb:present)))
-    
+    (if (= ((e 1) tb:event->key) tb:KEY_CTRL_Q)
+      (begin
+        (tb:shutdown)
+        (exit))
+      (begin
+        (set 's (char ((e 1) tb:event->ch)))
+        (tb:put-string (inc x) 10 s tb:BLACK tb:WHITE)
+        (tb:present)))))
 
-(test-termbox)
-(exit)
+
