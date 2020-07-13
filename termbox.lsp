@@ -27,12 +27,10 @@
     "/usr/local/share/termbox/libtermbox.dylib" ; 
 ))
 
-;|# (set 'lib (files (or
-;|# 		       (find true (map file? files)) 
-;|# 		       (throw-error "cannot find termbox library"))))
+ (set 'lib (files (or
+ 		       (find true (map file? files)) 
+ 		       (throw-error "cannot find termbox library"))))
 
-
-(define lib "/usr/local/Cellar/termbox/1.1.2/lib/libtermbox.dylib")
 
 ;; Key constants. See also struct event's key field.
 ;; These are a safe subset of terminfo keys, which exist on all popular
