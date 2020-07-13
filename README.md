@@ -1,5 +1,5 @@
 # termbox
-Newlisp bindings for termbox library https://github.com/nsf/termbox :
+Newlisp bindings for the termbox library https://github.com/nsf/termbox :
 "Termbox is a library that provides minimalistic API which allows the programmer to write text-based user interfaces."
 
 You should start termbox from the terminal: newlisp termbox. 
