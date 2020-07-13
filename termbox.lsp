@@ -28,8 +28,8 @@
 ))
 
  (set 'lib (files (or
- 		       (find true (map file? files)) 
- 		       (throw-error "cannot find termbox library"))))
+            (find true (map file? files)) 
+            (throw-error "cannot find termbox library"))))
 
 
 ;; Key constants. See also struct event's key field.
@@ -202,10 +202,10 @@
 ;; most cases you should just check the returned code as < 0.
 (define (init)
   (case (tb_init)
-		(-1 "error: UNSUPPORTED TERMINAL")
-	  (-2 "error: FAILED TO OPEN_TTY")
-		(-3 "error: PIPE TRAP ERROR")
-		(true "OK")))
+    (-1 "error: UNSUPPORTED TERMINAL")
+    (-2 "error: FAILED TO OPEN_TTY")
+    (-3 "error: PIPE TRAP ERROR")
+    (true "OK")))
 
 ;; @syntax (tb:shutdown)
 (define (shutdown)
@@ -259,10 +259,10 @@
 ;; @param <dir> direction, 1: horizontal (default), 2:vertical, 3:diagonal
 ;; Put a string in the buffer.
 (define (put-string x y str (fg tb:BLACK) (bg tb:WHITE) (dir 1))
-	(case dir
-			(1 (setq x1 1 y1 0))  ;horizontal printing
-			(2 (setq x1 0 y1 1))  ;vertical printing
-			(3 (setq x1 1 y1 1))) ;diagonal printing ;-)
+  (case dir
+      (1 (setq x1 1 y1 0))  ;horizontal printing
+      (2 (setq x1 0 y1 1))  ;vertical printing
+      (3 (setq x1 1 y1 1))) ;diagonal printing ;-)
   (dostring (s str)
     (tb_change_cell (+ x (* $idx x1)) (+ y (* $idx y1)) s fg bg)))
 
@@ -287,7 +287,7 @@
 ;; as no tb_clear() and tb_present() calls are made. The buffer is
 ;; one-dimensional buffer containing lines of cells starting from the top.
 (define (cell-buffer)
-	(tb_cell_buffer))
+  (tb_cell_buffer))
 
 (constant 'INPUT_CURRENT 0) ; 000 
 (constant 'INPUT_ESC     1) ; 001 
@@ -373,9 +373,9 @@
 ;; or tb:EVENT_MOUSE. The fields 'key' and 'ch' are mutually exclusive; only
 ;; one of them can be non-zero at a time. 
 (define(peek-event timeout)
-	(set 'ev (pack event))
+  (set 'ev (pack event))
   (set 'type (tb_peek_event ev timeout))
-	(list type (unpack event ev)))
+  (list type (unpack event ev)))
 
 
 ;; @syntax (poll)
@@ -389,20 +389,20 @@
 ;; or tb:EVENT_MOUSE. The fields 'key' and 'ch' are mutually exclusive; only
 ;; one of them can be non-zero at a time.
 (define (poll)
-	(set 'ev (pack event))
+  (set 'ev (pack event))
   (set 'type (tb_poll_event ev))
-	(list type (unpack event ev)))
+  (list type (unpack event ev)))
 
 (context 'MAIN)
 
 (define (test-termbox)
-	(tb:init)
+  (tb:init)
   (tb:box 10 0 10 5 tb:GREEN tb:BLACK)
-	(tb:box)
-	(tb:put-string 2 0 "OPEN" tb:GREEN tb:BLACK)
+  (tb:box)
+  (tb:put-string 2 0 "OPEN" tb:GREEN tb:BLACK)
   (tb:put-string 9 0 "SAVE" tb:GREEN tb:BLACK)
   (set 'ctrl nil)
-	(tb:present)
+  (tb:present)
   (set 'x 10)
   (while true
     (set 'e (tb:poll))
